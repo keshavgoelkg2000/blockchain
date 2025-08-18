@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blockchain</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <div class="app-bg"></div>
+  <header class="app-header">
+    <div class="container">
+      <div class="brand">
+        <div>
+          <h1>Blockchain</h1>
+        </div>
+      </div>
+      <div class="toolbar controls">
+        <input id="mineData" type="text" placeholder="Enter block data" />
+        <button id="mineBtn" class="btn">Mine</button>
+        <select id="downloadFormat">
+          <option value="json">JSON</option>
+          <option value="yaml">YAML</option>
+          <option value="txt">TXT</option>
+        </select>
+        <button id="downloadBtn" class="btn btn-secondary">Download</button>
+        <label class="upload btn btn-upload">
+          <input type="file" id="uploadInput" accept=".json,.yaml,.txt" />
+          <span>Validate (Upload)</span>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="container grid">
+    <section>
+      <div class="section-head">
+        <h2>Blockchain</h2>
+        <div class="pill">Live</div>
+      </div>
+      <div id="chain" class="chain chained scroll-strip"></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Validation</h2>
+        <div class="pill pill-warn">Uploaded</div>
+      </div>
+      <div id="uploaded" class="chain chained scroll-strip"></div>
+    </section>
+  </main>
+
+  <script src="/main.js"></script>
+</body>
+
+</html>

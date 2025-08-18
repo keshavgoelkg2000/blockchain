@@ -1,0 +1,25 @@
+{
+  "name": "simple-blockchain-webapp",
+  "version": "1.0.0",
+  "description": "A simple blockchain with mining, download, and validation via a web UI.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js"
+  },
+  "keywords": [
+    "blockchain",
+    "express",
+    "pow",
+    "mining"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "js-yaml": "^4.1.0",
+    "multer": "^1.4.5-lts.1"
+  }
+}
+
+
