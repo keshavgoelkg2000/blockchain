@@ -48,7 +48,7 @@ The block header also includes a **Merkle Root**, computed from all transaction 
 Clone the repository:
 
 ```bash
-git clone https://github.com/ritviksahu/Simple-Blockchain.git
+git clone https://github.com/keshavgoelkg2000/blockchain.git
 ```
 
 Install Dependencies:
