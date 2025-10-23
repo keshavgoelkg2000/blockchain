@@ -1,57 +1,130 @@
+// public/main.js (updated)
 async function fetchChain() {
   const res = await fetch('/api/chain');
   if (!res.ok) throw new Error('Failed to fetch chain');
   return res.json();
 }
 
-function blockView(block, invalidIndicesOrFlag = new Set(), isGenesis = false, reasonList = []) {
-  const isInvalid = typeof invalidIndicesOrFlag === 'boolean' ? invalidIndicesOrFlag : invalidIndicesOrFlag.has(block.index);
-  const wrap = document.createElement('div');
-  wrap.className = 'block ' + (isInvalid ? 'invalid' : 'valid');
-  wrap.innerHTML = `
-    <div class="kv"><span class="k">Index:</span> <span class="v">${block.index}</span></div>
-    <div class="kv"><span class="k">Timestamp:</span> <span class="v">${block.timestamp}</span></div>
-    <div class="kv"><span class="k">Previous Hash:</span> <span class="v">${block.previousHash}</span></div>
-    <div class="kv"><span class="k">Hash:</span> <span class="v">${block.hash}</span></div>
-    <div class="kv"><span class="k">Data:</span> <span class="v">${typeof block.data === 'string' ? block.data : JSON.stringify(block.data)}</span></div>
-    <div class="kv"><span class="k">Nonce:</span> <span class="v">${block.nonce}</span></div>
-    ${isInvalid ? '<span class="badge badge-invalid">Invalid</span>' : ''}
-    ${isGenesis ? '<span class="badge badge-genesis">Genesis</span>' : ''}
-  `;
+function renderTransaction(tx) {
+  const div = document.createElement('div');
+  div.className = 'tx';
+  console.log(tx);
 
-  if (isInvalid && reasonList.length) {
-    const ul = document.createElement('ul');
-    ul.className = 'reasons';
-    for (const r of reasonList) {
-      const li = document.createElement('li');
-      li.textContent = r;
-      ul.appendChild(li);
-    }
-    wrap.appendChild(ul);
-  }
+  let html = `<div><b>Version:</b> ${tx.version || 1}</div>`;
+  html += `<div><b>Input Count:</b> ${tx.inputs.length}</div>`;
+
+  tx.inputs.forEach((inp, idx) => {
+    html += `
+      <div class="input">
+        <b>Input ${idx + 1}:</b><br>
+        Previous Transaction Hash: ${inp.txid}<br>
+        Output Index: ${inp.index}<br>
+        Script Length: ${inp.scriptSig ? inp.scriptSig.length / 2 : 0}<br>
+        ScriptSig: ${inp.scriptSig || ''}<br>
+        Sequence: ${inp.sequence || 'ffffffff'}
+      </div>
+    `;
+  });
+
+  html += `<div><b>Output Count:</b> ${tx.outputs.length}</div>`;
+
+  tx.outputs.forEach((out, idx) => {
+    html += `
+      <div class="output">
+        <b>Output ${idx + 1}:</b><br>
+        Value: ${out.value} satoshis<br>
+        Script Length: ${parseInt(out.scriptPubKey.length / 2)}<br>
+        ScriptPubKey: ${out.scriptPubKey}
+      </div>
+    `;
+  });
+
+  html += `<div><b>Locktime:</b> ${tx.locktime || 0}</div>`;
+  // html += `<div><b>TxID:</b> ${tx.txid}</div>`;
+
+  div.innerHTML = html;
+  if (tx.isCoinbase) {
+  div.classList.add('coinbase');
+  const badge = document.createElement('span');
+  badge.className = 'badge badge-coinbase';
+  badge.textContent = 'Coinbase';
+  div.appendChild(badge);
+}
+
+  return div;
+}
+
+
+function txView(tx) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tx';
+  const ins = (tx.inputs || []).map(i => `${i.txid.substr(0, 12)}...:${i.index}`).join(', ');
+  const outs = (tx.outputs || []).map(o => `${o.value} sats`).join(', ');
+  wrap.innerHTML = `
+    <div class="kv"><span class="k">TxID:</span> <span class="v">${tx.txid}</span></div>
+    ${tx.note ? `<div class="kv"><span class="k">Note:</span> <span class="v">${tx.note}</span></div>` : ''}
+    <div class="kv"><span class="k">Inputs:</span> <span class="v">${ins}</span></div>
+    <div class="kv"><span class="k">Outputs total:</span> <span class="v">${outs}</span></div>
+  `;
   return wrap;
 }
 
-function liveChain(payload) {
+function blkView(blk, flag = new Set(), isGen = false, reList = []) {
+  const isInv = typeof flag === 'boolean' ? flag : flag.has(blk.idx);
+  const wrap = document.createElement('div');
+  wrap.className = 'blk ' + (isInv ? 'inv' : 'val');
+
+  wrap.innerHTML = `
+    <div class="kv"><span class="k">Index:</span> <span class="v">${blk.idx}</span></div>
+    <div class="kv"><span class="k">Timestamp:</span> <span class="v">${blk.ts}</span></div>
+    <div class="kv"><span class="k">Previous Hash:</span> <span class="v">${blk.prevHash}</span></div>
+    <div class="kv"><span class="k">Hash:</span> <span class="v">${blk.hash}</span></div>
+    <div class="kv"><span class="k">Merkle Root:</span> <span class="v">${blk.merkleRoot || ''}</span></div>
+    <div class="kv"><span class="k">Nonce:</span> <span class="v">${blk.nonce}</span></div>
+    ${isInv ? '<span class="badge badge-inv">Invalid</span>' : ''}
+    ${isGen ? '<span class="badge badge-genesis">Genesis</span>' : ''}
+  `;
+
+  // ✅ Show transactions if present
+  if (Array.isArray(blk.transactions) && blk.transactions.length > 0) {
+  const txCont = document.createElement('div');
+  txCont.className = 'tx-list';
+  const h = document.createElement('h4');
+  h.textContent = 'Transactions';
+  txCont.appendChild(h);
+
+  blk.transactions.forEach((tx) => {
+    const tEl = renderTransaction(tx);   // ✅ new function
+    txCont.appendChild(tEl);
+  });
+
+  wrap.appendChild(txCont);
+}
+
+  return wrap;
+}
+
+
+function liveChain(pld) {
   const root = document.getElementById('chain');
   root.innerHTML = '';
-  const detailsByIndex = new Map((payload.validation.details || []).map(d => [d.index, d]));
-  const invalidIndices = Array.isArray(payload.validation?.invalidBlockIndices) ? payload.validation.invalidBlockIndices : [];
-  const minBadIndex = invalidIndices.length ? Math.min(...invalidIndices) : Infinity;
+  const idxInfo = new Map((pld.val.dets || []).map(d => [d.idx, d]));
+  const invIdx = Array.isArray(pld.val?.invBlkIdx) ? pld.val.invBlkIdx : [];
+  const badIdx = invIdx.length ? Math.min(...invIdx) : Infinity;
   let firstBad = false;
-  for (let idx = 0; idx < payload.chain.length; idx += 1) {
-    const b = payload.chain[idx];
-    const d = detailsByIndex.get(b.index) || {};
+  for (let idx = 0; idx < pld.chain.length; idx += 1) {
+    const b = pld.chain[idx];
+    const d = idxInfo.get(b.idx) || {};
     const reasons = [];
-    if (d.cascaded) reasons.push('Cascaded from previous invalid block');
-    if (d.isIndexValid === false) reasons.push('Index broken');
-    if (d.isPrevValid === false) reasons.push('Previous hash mismatch');
-    if (d.isPowValid === false) reasons.push('Proof-of-Work not satisfied');
-    if (d.isHashValid === false) reasons.push('Hash does not match block contents');
-    const isGenesis = b.index === 0;
-    const isInvalid = firstBad || d.blockValid === false || d.cascaded === true || b.index >= minBadIndex;
-    if (!firstBad && (d.blockValid === false || d.cascaded === true || d.isHashValid === false || d.isPrevValid === false || d.isPowValid === false || d.isIndexValid === false)) firstBad = true;
-    const el = blockView(b, isInvalid, isGenesis, reasons);
+    if (d.cc) reasons.push('Cascaded from previous invalid block');
+    if (d.isIdxVal === false) reasons.push('Index broken');
+    if (d.isPrevVal === false) reasons.push('Previous hash mismatch');
+    if (d.isPowVal === false) reasons.push('Proof-of-Work not satisfied');
+    if (d.isHashVal === false) reasons.push('Hash does not match block contents');
+    const isGen = b.idx === 0;
+    const isInv = firstBad || d.blkVal === false || d.cc === true || b.idx >= badIdx;
+    if (!firstBad && (d.blkVal === false || d.cc === true || d.isHashVal === false || d.isPrevVal === false || d.isPowVal === false || d.isIdxVal === false)) firstBad = true;
+    const el = blkView(b, isInv, isGen, reasons);
     if (idx === 0) el.classList.add('gen');
     root.appendChild(el);
   }
@@ -59,31 +132,31 @@ function liveChain(payload) {
   updateLayout();
 }
 
-function uploadResult(payload) {
+function uploadResult(pld) {
   const root = document.getElementById('uploaded');
   root.innerHTML = '';
-  if (!payload || !payload.chain) {
+  if (!pld || !pld.chain) {
     updateLayout();
     return;
   }
 
-  const detailsByIndex = new Map((payload.validation.details || []).map(d => [d.index, d]));
-  const invalidIndices = Array.isArray(payload.validation?.invalidBlockIndices) ? payload.validation.invalidBlockIndices : [];
-  const minBadIndex = invalidIndices.length ? Math.min(...invalidIndices) : Infinity;
+  const idxInfo = new Map((pld.val.dets || []).map(d => [d.idx, d]));
+  const invIdx = Array.isArray(pld.val?.invBlkIdx) ? pld.val.invBlkIdx : [];
+  const badIdx = invIdx.length ? Math.min(...invIdx) : Infinity;
   let firstBad = false;
-  for (let idx = 0; idx < payload.chain.length; idx += 1) {
-    const b = payload.chain[idx];
-    const d = detailsByIndex.get(b.index) || {};
+  for (let idx = 0; idx < pld.chain.length; idx += 1) {
+    const b = pld.chain[idx];
+    const d = idxInfo.get(b.idx) || {};
     const reasons = [];
-    if (d.cascaded) reasons.push('Cascaded from previous invalid block');
-    if (d.isIndexValid === false) reasons.push('Index broken');
-    if (d.isPrevValid === false) reasons.push('Previous hash mismatch');
-    if (d.isPowValid === false) reasons.push('Proof-of-Work not satisfied');
-    if (d.isHashValid === false) reasons.push('Hash does not match block contents');
-    const isGenesis = b.index === 0;
-    const isInvalid = firstBad || d.blockValid === false || d.cascaded === true || b.index >= minBadIndex;
-    if (!firstBad && (d.blockValid === false || d.cascaded === true || d.isHashValid === false || d.isPrevValid === false || d.isPowValid === false || d.isIndexValid === false)) firstBad = true;
-    const el = blockView(b, isInvalid, isGenesis, reasons);
+    if (d.cc) reasons.push('Cascaded from previous invalid block');
+    if (d.isIdxVal === false) reasons.push('Index broken');
+    if (d.isPrevVal === false) reasons.push('Previous hash mismatch');
+    if (d.isPowVal === false) reasons.push('Proof-of-Work not satisfied');
+    if (d.isHashVal === false) reasons.push('Hash does not match block contents');
+    const isGen = b.idx === 0;
+    const isInv = firstBad || d.blkVal === false || d.cc === true || b.idx >= badIdx;
+    if (!firstBad && (d.blkVal === false || d.cc === true || d.isHashVal === false || d.isPrevVal === false || d.isPowVal === false || d.isIdxVal === false)) firstBad = true;
+    const el = blkView(b, isInv, isGen, reasons);
     if (idx === 0) el.classList.add('gen');
     root.appendChild(el);
   }
@@ -94,9 +167,9 @@ function uploadResult(payload) {
 function updateLayout() {
   const grid = document.querySelector('.grid');
   const uploadedSection = document.getElementById('uploaded');
-  const hasValidationContent = uploadedSection.children.length > 0;
+  const hasValInfo = uploadedSection.children.length > 0;
 
-  if (hasValidationContent) {
+  if (hasValInfo) {
     grid.classList.remove('single-column');
     uploadedSection.closest('section').style.display = 'block';
   } else {
@@ -107,14 +180,13 @@ function updateLayout() {
 
 async function init() {
   const mineBtn = document.getElementById('mineBtn');
-  const mineDataInput = document.getElementById('mineData');
-  const downloadBtn = document.getElementById('downloadBtn');
-  const downloadFormat = document.getElementById('downloadFormat');
-  const uploadInput = document.getElementById('uploadInput');
+  const dlBtn = document.getElementById('downloadBtn');
+  const dlFmt = document.getElementById('downloadFormat');
+  const upInput = document.getElementById('uploadInput');
 
   const refresh = async () => {
-    const payload = await fetchChain();
-    liveChain(payload);
+    const pld = await fetchChain();
+    liveChain(pld);
   };
 
   await refresh();
@@ -125,28 +197,23 @@ async function init() {
     mineBtn.disabled = true;
     mineBtn.textContent = 'Mining...';
 
-    let blockData = mineDataInput.value.trim();
-    if (blockData.length > 0) {
-      try {
-        blockData = JSON.parse(blockData);
-      } catch (e) {
-        // keep as string
-      }
-    } else {
-      blockData = undefined;
-    }
+    let blkData = "Block Data";
 
-    const res = await fetch('/api/mine', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: blockData }) });
-    const resJson = await res.json();
-    if (!res.ok) throw new Error(resJson.error || 'Failed to mine');
+    const res = await fetch('/api/mine', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: blkData }) });
+    const resJ = await res.json();
+    if (!res.ok) {
+      mineBtn.disabled = false;
+      mineBtn.textContent = 'Mine';
+      throw new Error(resJ.error || 'Failed to mine');
+    }
     await refresh();
 
     mineBtn.disabled = false;
     mineBtn.textContent = 'Mine';
   });
 
-  downloadBtn.addEventListener('click', () => {
-    const fmt = downloadFormat.value || 'json';
+  dlBtn.addEventListener('click', () => {
+    const fmt = dlFmt.value || 'json';
     const url = `/api/download?format=${encodeURIComponent(fmt)}`;
     const a = document.createElement('a');
     a.href = url;
@@ -156,8 +223,8 @@ async function init() {
     a.remove();
   });
 
-  uploadInput.addEventListener('change', async () => {
-    const file = uploadInput.files[0];
+  upInput.addEventListener('change', async () => {
+    const file = upInput.files[0];
     if (!file) return;
 
     const form = new FormData();
@@ -165,13 +232,11 @@ async function init() {
 
     const res = await fetch('/api/validate', { method: 'POST', body: form });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Validation failed');
+    if (!res.ok) throw new Error(data.error || 'Val failed');
     uploadResult(data);
 
-    uploadInput.value = '';
+    upInput.value = '';
   });
 }
 
 init();
-
-

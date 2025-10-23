@@ -1,13 +1,10 @@
-* {
-    box-sizing: border-box;
-}
 
 body {
     font-family: system-ui, -apple-system, Ubuntu, 'Helvetica Neue', Arial;
     margin: 0;
     padding: 0;
-    background: #0f172a;
-    color: #e2e8f0;
+    background: #f8fafc; /* Light background */
+    color: #1e293b; /* Dark text */
 }
 
 .container {
@@ -37,37 +34,19 @@ button {
     cursor: pointer;
 }
 
-button:hover {
-    background: #1d4ed8;
-}
-
 select {
     padding: 8px;
     border-radius: 8px;
-    background: #1e293b;
-    color: #e2e8f0;
-    border: 1px solid #334155;
+    background: #ffffff;
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
 }
-
-input#mineData {
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: #0b1220;
-    color: #e2e8f0;
-    border: 1px solid #334155;
-    min-width: 260px;
-    flex: 1;
-}
-
 label.upload {
-    background: #16a34a;
+    background: #f59e0b;
     padding: 10px 14px;
     border-radius: 8px;
     cursor: pointer;
-}
-
-label.upload:hover {
-    background: #15803d;
+    color: white;
 }
 
 label.upload input {
@@ -87,47 +66,47 @@ label.upload input {
     position: relative;
 }
 
-.chained .block {
+.chained .blk {
     border-left-width: 10px;
 }
 
-.chained .block::before {
+.chained .blk::before {
     content: "";
     position: absolute;
     left: 50%;
     top: -16px;
     width: 2px;
     height: 16px;
-    background: #334155;
+    background: #e2e8f0;
     transform: translateX(-50%);
 }
 
-.block {
-    background: #1e293b;
-    border: 1px solid #334155;
+.blk {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 20px;
     position: relative;
 }
 
-.block.valid {
-    border-left-color: #22c55e;
+.blk.val {
+    border-left-color: #10b981;
 }
 
-.block.invalid {
+.blk.inv {
     border-left-color: #ef4444;
 }
 
-.block.gen.valid {
-    border-left-color: #22c55e;
+.blk.gen.val {
+    border-left-color: #10b981;
 }
 
-.block.gen.invalid {
+.blk.gen.inv {
     border-left-color: #ef4444;
 }
 
-.block.gen::before,
-.block.gen::after {
+.blk.gen::before,
+.blk.gen::after {
     display: none;
 }
 
@@ -138,13 +117,13 @@ label.upload input {
 }
 
 .kv .k {
-    color: #9ca3af;
+    color: #64748b;
     min-width: 120px;
     font-weight: 500;
 }
 
 .kv .v {
-    color: #e5e7eb;
+    color: #1e293b;
     word-break: break-all;
 }
 
@@ -153,19 +132,19 @@ label.upload input {
     top: 8px;
     right: 8px;
     padding: 2px 8px;
-    border-radius: 9999px;
+    border-radius: 9000px;
     font-size: 12px;
     font-weight: 600;
 }
 
-.badge-invalid {
+.badge-inv {
     background: #ef4444;
     color: white;
 }
 
 .badge-genesis {
     background: #38bdf8;
-    color: #031525;
+    color: #0f172a;
     top: auto;
     bottom: 8px;
     right: 8px;
@@ -175,8 +154,8 @@ label.upload input {
 .reasons {
     margin-top: 8px;
     padding-top: 6px;
-    border-top: 1px dashed #ef444433;
-    color: #fecaca;
+    border-top: 1px dashed #fecaca;
+    color: #dc2626;
     font-size: 13px;
 }
 
@@ -187,7 +166,9 @@ label.upload input {
 .app-bg {
     position: fixed;
     inset: 0;
-    background: radial-gradient(1000px 600px at 20% -10%, rgba(37, 99, 235, 0.25), transparent), radial-gradient(800px 500px at 90% 0%, rgba(34, 197, 94, 0.18), transparent), radial-gradient(1000px 600px at 10% 90%, rgba(236, 72, 153, 0.16), transparent);
+    background: radial-gradient(1000px 600px at 20% -10%, rgba(37, 99, 235, 0.25), transparent),
+                radial-gradient(800px 500px at 90% 0%, rgba(16, 185, 129, 0.18), transparent),
+                radial-gradient(1000px 600px at 10% 90%, rgba(245, 158, 11, 0.16), transparent);
     filter: blur(40px);
     pointer-events: none;
     z-index: 0;
@@ -197,8 +178,8 @@ label.upload input {
     position: sticky;
     top: 0;
     backdrop-filter: blur(6px);
-    background: rgba(2, 6, 23, 0.6);
-    border-bottom: 1px solid #1e293b;
+    background: rgba(248, 250, 252, 0.8);
+    border-bottom: 1px solid #e2e8f0;
     z-index: 5;
 }
 
@@ -221,26 +202,6 @@ label.upload input {
     cursor: pointer;
 }
 
-.btn:hover {
-    background: #1d4ed8;
-}
-
-.btn-secondary {
-    background: #0ea5e9;
-}
-
-.btn-secondary:hover {
-    background: #0284c7;
-}
-
-.btn-upload {
-    background: #16a34a;
-}
-
-.btn-upload:hover {
-    background: #15803d;
-}
-
 .grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -256,35 +217,16 @@ label.upload input {
 }
 
 .pill {
-    background: #1f2937;
-    color: #93c5fd;
+    background: #f1f5f9;
+    color: #2563eb;
     padding: 4px 10px;
     border-radius: 9999px;
-    border: 1px solid #334155;
+    border: 1px solid #e2e8f0;
     font-size: 12px;
 }
 
 .pill-warn {
-    color: #fca5a5;
-}
-
-.scroll-strip {
-    max-height: 60vh;
-    overflow: auto;
-    padding-right: 6px;
-}
-
-.scroll-strip::-webkit-scrollbar {
-    width: 10px;
-}
-
-.scroll-strip::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 8px;
-}
-
-.scroll-strip::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    color: #ef4444;
 }
 
 .grid.single-column section:last-child {
@@ -295,42 +237,70 @@ label.upload input {
     display: block;
 }
 
-@media (min-width: 900px) {
-    .grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 32px;
-        align-items: start;
-        transition: all 0.3s ease-in-out;
-    }
+/* Transaction container inside a block */
+.tx-list {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
 
-    .grid.single-column {
-        grid-template-columns: 1fr;
-        max-width: 800px;
-        margin: 0 auto;
-    }
+.tx-list h4 {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    color: #1e293b;
+}
 
-    .grid.single-column .section-head {
-        text-align: left;
-    }
+/* Individual transaction box */
+.tx {
+    background: #f9fafb;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    position: relative;  /* 👈 This makes badge position relative to the tx, not the block */
+}
 
-    .grid.single-column .chained {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
 
-    .grid.single-column .chained .block {
-        max-width: 600px;
-        margin: 0 auto 24px auto;
-        transition: all 0.3s ease-in-out;
-    }
+/* Inputs & outputs formatting */
+.tx .input,
+.tx .output {
+    margin-left: 16px;
+    margin-top: 4px;
+    padding-left: 8px;
+    border-left: 2px solid #cbd5e1;
+    font-family: monospace;
+    font-size: 12px;
+    color: #334155;
+}
 
-    .grid.single-column .chained .block::before {
-        height: 40px;
-        top: -40px;
-    }
+/* Labels (like "Input 1", "Output 1") */
+.tx b {
+    color: #0f172a;
+}
 
-    .chained .block {
-        transition: all 0.3s ease-in-out;
-    }
+/* ScriptPubKey monospace style */
+.tx .output {
+    word-break: break-all;
+}
+.tx.coinbase {
+    background: #fefce8; /* soft yellow */
+    border-color: #fde68a;
+}
+
+.badge-coinbase {
+    background: #facc15;   /* yellow */
+    color: #1e293b;        /* dark text */
+    /* position: absolute;
+    bottom: 6px;
+    right: 6px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600; */
+    padding: 4px 10px;
+    border-radius: 9999px;
+    border: 1px solid #e2e8f0;
+    font-size: 12px;
 }
